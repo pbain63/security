@@ -1,5 +1,4 @@
 //jshint esversion:6
-//* changed here
 require("dotenv").config();
 const express = require("express");
 const bodyParser = require("body-parser");
@@ -79,7 +78,7 @@ passport.use(
   )
 );
 
-//TODO
+
 app.get("/", function (req, res) {
   res.render("home");
 });
@@ -108,7 +107,7 @@ app.get("/register", function (req, res) {
 
 app.get("/secrets", function (req, res) {
   async function myFind() {
-    const foundUsers = await User.find({ secret: { $ne: null } }).exec(); //req.user.id
+    const foundUsers = await User.find({ secret: { $ne: null } }).exec(); 
     if (foundUsers) {
       res.render("secrets", { usersWithSecrets: foundUsers });
     }
@@ -128,7 +127,7 @@ app.post("/submit", async function (req, res) {
   const submittedSecret = req.body.secret;
   console.log(req.user.id);
   try {
-    const foundUser = await User.findById(req.user.id).exec(); 
+    const foundUser = await User.findById(req.user.id).exec();
     if (foundUser) {
       foundUser.secret = submittedSecret;
       await foundUser.save(); // Use await to ensure the save operation is completed
