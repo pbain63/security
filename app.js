@@ -39,6 +39,7 @@ const userSchema = new mongoose.Schema({
   email: String,
   password: String,
   googleId: String,
+  secret: String,
 });
 
 userSchema.plugin(passportLocalMongoose);
@@ -54,8 +55,7 @@ passport.serializeUser(function (user, done) {
 
 passport.deserializeUser(function (id, done) {
   async function myFind() {
-    const user = await User.findById(id).exec();
-    
+    const user = await User.findById(id).exec(); //req.user.id
   }
   myFind();
 
@@ -109,11 +109,36 @@ app.get("/register", function (req, res) {
 });
 
 app.get("/secrets", function (req, res) {
+  async function myFind() {
+    const foundUsers = await User.find({ secret: { $ne: null } }).exec(); //req.user.id
+    if (foundUsers) {
+      res.render("secrets", { usersWithSecrets: foundUsers });
+    }
+  }
+  myFind();
+});
+
+app.get("/submit", function (req, res) {
   if (req.isAuthenticated()) {
-    res.render("secrets");
+    res.render("submit");
   } else {
     res.redirect("/login");
   }
+});
+
+app.post("/submit", function (req, res) {
+  const submittedSecret = req.body.secret;
+  console.log(req.user.id);
+  async function myFind() {
+    const foundUser = await User.findById(req.user.id).exec(); //req.user.id
+    if (foundUser) {
+      foundUser.secret = submittedSecret;
+      foundUser.save(function () {
+        res.redirect("/secrets");
+      });
+    }
+  }
+  myFind();
 });
 
 app.get("/logout", function (req, res, next) {
