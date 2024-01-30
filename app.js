@@ -53,15 +53,13 @@ passport.serializeUser(function (user, done) {
   done(null, user.id);
 });
 
-passport.deserializeUser(function (id, done) {
-  async function myFind() {
-    const user = await User.findById(id).exec(); //req.user.id
+passport.deserializeUser(async function (id, done) {
+  try {
+    const user = await User.findById(id).exec();
+    done(null, user);
+  } catch (err) {
+    done(err, null);
   }
-  myFind();
-
-  // User.findById(id, function (err, user) {
-  //   done(err, user);
-  // });
 });
 
 passport.use(
@@ -126,19 +124,22 @@ app.get("/submit", function (req, res) {
   }
 });
 
-app.post("/submit", function (req, res) {
+app.post("/submit", async function (req, res) {
   const submittedSecret = req.body.secret;
   console.log(req.user.id);
-  async function myFind() {
-    const foundUser = await User.findById(req.user.id).exec(); //req.user.id
+  try {
+    const foundUser = await User.findById(req.user.id).exec(); 
     if (foundUser) {
       foundUser.secret = submittedSecret;
-      foundUser.save(function () {
-        res.redirect("/secrets");
-      });
+      await foundUser.save(); // Use await to ensure the save operation is completed
+      res.redirect("/secrets");
+    } else {
+      res.status(404).send("User not found");
     }
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Internal Server Error");
   }
-  myFind();
 });
 
 app.get("/logout", function (req, res, next) {
