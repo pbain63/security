@@ -23,7 +23,7 @@ app.use(express.static("public"));
 //
 app.use(
   session({
-    secret: "Our little secrets.",
+    secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
   })
@@ -32,7 +32,7 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 
-mongoose.connect("mongodb://localhost:27017/userDB");
+mongoose.connect(process.env.MONGODB_URI);
 
 const userSchema = new mongoose.Schema({
   email: String,
@@ -66,8 +66,8 @@ passport.use(
     {
       clientID: process.env.CLIENT_ID,
       clientSecret: process.env.CLIENT_SECRET,
-      callbackURL: "http://localhost:3000/auth/google/secrets",
-      userProfileURL: "https://www.googleapis.com/oauth2/v3/userinfo",
+      callbackURL: process.env.CALLBACK_URL,
+      userProfileURL: process.env.USER_PROFILE_URL,
     },
     function (accessToken, refreshToken, profile, cb) {
       console.log(profile);
@@ -77,7 +77,6 @@ passport.use(
     }
   )
 );
-
 
 app.get("/", function (req, res) {
   res.render("home");
@@ -107,7 +106,7 @@ app.get("/register", function (req, res) {
 
 app.get("/secrets", function (req, res) {
   async function myFind() {
-    const foundUsers = await User.find({ secret: { $ne: null } }).exec(); 
+    const foundUsers = await User.find({ secret: { $ne: null } }).exec();
     if (foundUsers) {
       res.render("secrets", { usersWithSecrets: foundUsers });
     }
